@@ -1,0 +1,11 @@
+version: '2'
+services:
+    jhflow-postgresql:
+        image: postgres:9.6.2
+        # volumes:
+        #     - ~/volumes/jhipster/jhflow/postgresql/:/var/lib/postgresql/data/
+        environment:
+            - POSTGRES_USER=jhflow
+            - POSTGRES_PASSWORD=
+        ports:
+            - 5432:5432
