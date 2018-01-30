@@ -145,6 +145,46 @@ For more information refer to [Using Docker and Docker-Compose][], this page als
 
 To configure CI for your project, run the ci-cd sub-generator (`jhipster ci-cd`), this will let you generate configuration files for a number of Continuous Integration systems. Consult the [Setting up Continuous Integration][] page for more information.
 
+## Flowable Integration
+
+1. Create standard JHipster application
+2. Update pom.xml to add the following dependency to pom.xml:
+        <!-- https://mvnrepository.com/artifact/org.flowable/flowable-spring-boot-starter-rest-api -->
+        <dependency>
+            <groupId>org.flowable</groupId>
+            <artifactId>flowable-spring-boot-starter-rest-api</artifactId>
+            <version>6.1.0</version>
+        </dependency>
+
+
+3. Update the main application class to exclude the flowable SecurityAutoConfiguration
+
+
+@ComponentScan
+@EnableAutoConfiguration(exclude = {MetricFilterAutoConfiguration.class, MetricRepositoryAutoConfiguration.class, org.flowable.spring.boot.SecurityAutoConfiguration.class})
+@EnableConfigurationProperties({LiquibaseProperties.class, ApplicationProperties.class})
+public class JhflowApp {
+4. Create a “processes” directory under <package>/resources and add a sample bpm process.
+
+5. This is necessary as the autodeploy will fail otherwise and the engine will not start.
+
+6. There will be an overlap in the userResource bean so update the Hipster app ReST Resource UserResource definition in <package>/web/rest/UserResource.
+This name is not actually called by anything so a simple rename/refactor is all that is required.
+I renamed it to “JHserResource"
+
+7. Update the Swagger default-include-path path in <package>/resources/config/application.yml to look like:
+default-include-pattern: /(api|runtime|query|repository/process-definitions|repository/deployments|history)/.
+8. The above swagger update includes the flowable ReST endpoints.
+This includes the most important API’s but doesn’t include management and other less obscure API’s.
+
+9. Override the “default” auto-deployment strategy with a custom ProcessEngineConfigurationConfigurer class.
+
+10. Override the Identity Service implementation of Flowable to use the JHipster user and group tables.
+This allows us to retain the AuthenticationProvider for JHipster.
+This will be pulled into the Process Engine Configuration in the “ProcessEngineConfigurationConfigurer” class using:
+processEnginerConfiguration.setIdmProcessEngineConfigurator(customIdmConfiguration).
+Refer : https://github.com/flowable/flowable-engine/tree/master/modules/flowable-ldap-configurator/src/main/java/org/flowable/ldap
+
 [JHipster Homepage and latest documentation]: https://jhipster.github.io
 [JHipster 4.6.2 archive]: https://jhipster.github.io/documentation-archive/v4.6.2
 
